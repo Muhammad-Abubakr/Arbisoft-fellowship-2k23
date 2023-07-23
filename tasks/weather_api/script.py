@@ -7,40 +7,26 @@ class WeatherApi:
     weather, given the location details.
     
     WeatherAPI supports four types of requests:
-    - Future forcasts:
-        range from 14-days to 300-days in
-        the future from present day.
-    - Todays Forecasts:
-        Each hour conditions for whole day.
-    - History forecasts:
-        upto 365-days in past.
+    - Future forcasts.
+    - Today's Forecasts.
+    - History forecasts.
     - Current Weather Conditions.
     
-    CONSTANTS:
-    ---------
-    
-    - __BASE_URL
-    - __CURRENT_WEATHER_ENDPOINT
-    - __HISTORY_ENDPOINT
-    - __FUTURE_ENDPOINT
-    - __FORECAST_ENDPOINT
-    
-    Methods:
-    -------
+    ### Methods:
     
     current_weather(city_name)
         logs the current weather conditions
     
     todays_forcast(city_name)
-        logs the forecast for today with 3 hour interval for whole day
+        logs the forecast for present day
     
     future_forecast(city_name, date)
-        logs the forecast with 3h interval for future date (yyyy-mm-dd)
+        logs the predicted forecast future date (yyyy-mm-dd)
     
-    past_weather(city_name, date)
-        logs the forecast with 3h interval for past date (yyyy-mm-dd)
+    history_forecast(city_name, date)
+        logs the forecast for the given date (yyyy-mm-dd) from past
     
-    NOTE: All the logs can be found in the ./weather-api-requests.log
+    NOTE: All the logs can be found in the ./weather.log
     """
     
     # CONSTANTS
@@ -54,13 +40,26 @@ class WeatherApi:
         self.__API_KEY = key
 
         # Logger Configuration
+        logging.basicConfig(
+            filename='weather.log',
+            format='%(levelname)s:%(asctime)s:%(name)s:%(message)s',
+            datefmt='%Y-%m-%d at %H:%M:%S',
+            level=logging.DEBUG
+        )
         self.logger = logging.getLogger(__name__)
-        self.logger.setLevel(logging.DEBUG)
-        self.file_handler = logging.FileHandler('./weather_api_requests.log')
-        self.logger.addHandler(self.file_handler)
-    
+        
+        # self.formatter = logging.Formatter(
+        #     '%(levelname)s:%(asctime)s:%(message)s',
+        #     datefmt='%Y-%m-%d at %H:%M:%S')
+        # self.file_handler = logging.FileHandler(filename='weather.log')
+        # self.file_handler.setFormatter(self.formatter)
+        # self.logger.addHandler(self.file_handler)
+        # self.logger.setLevel(logging.DEBUG)
+     
     # Methods
     def current_weather(self, city):
+        self.logger.info("Sending request for current weather conditions...")
+        
         try:
             url = (
                 f"{self.__BASE_URL}{self.__CURRENT_WEATHER_ENDPOINT}?key="
@@ -68,12 +67,26 @@ class WeatherApi:
             )
             res = get(url)
             parsed = Response.json(res)
-            self.logger.info(pformat(parsed))
             
-        except Exception as e:
-            self.logger.error(e)
+            # repr_str = f""" Current Weather Conditions
+            # Cloudiness: {parsed['cloud']}%
+            # Condition: {parsed['condition']['text']}
+            # Temperature: {parsed['temp_c']} C
+            # Feels Like: {parsed['feelslike_c']} C
+            # Wind: {parsed['wind_kph']} kph
+            # Humidity: {parsed['humidity']}%
+            # Precipitation: {parsed['precip_mm']} mm
+            # """
+            # self.logger.info(repr_str)
+            
+            self.logger.info(pformat(parsed))
+                        
+        except BaseException as e:
+            self.logger.error("An Error occured while making the request!")
 
     def todays_forcast(self, city):
+        self.logger.info("Sending request for Today's forecast...")
+
         try:
             url = (
                 f"{self.__BASE_URL}{self.__FORECAST_ENDPOINT}?key="
@@ -83,10 +96,12 @@ class WeatherApi:
             parsed = Response.json(res)
             self.logger.info(pformat(parsed))
             
-        except Exception as e:
-            self.logger.error(e)
+        except BaseException as e:
+            self.logger.error("An Error occured while making the request!")
 
     def future_forecast(self, city, date):
+        self.logger.info(f"Sending request for predicted {date} Forecast...")
+
         try:
             url = (
                 f"{self.__BASE_URL}{self.__FUTURE_ENDPOINT}?key="
@@ -96,10 +111,12 @@ class WeatherApi:
             parsed = Response.json(res)
             self.logger.info(pformat(parsed))
             
-        except Exception as e:
-            self.logger.error(e)
+        except BaseException as e:
+            self.logger.error("An Error occured while making the request!")
 
-    def past_weather(self, city, date):
+    def history_forecast(self, city, date):
+        self.logger.info(f"Sending request for past {date} forecast...")
+
         try:
             url = (
                 f"{self.__BASE_URL}{self.__HISTORY_ENDPOINT}?key="
@@ -109,8 +126,8 @@ class WeatherApi:
             parsed = Response.json(res)
             self.logger.info(pformat(parsed))
             
-        except Exception as e:
-            self.logger.error(e)
+        except BaseException as e:
+            self.logger.error("An Error occured while making the request!")
 
 
 if __name__ == '__main__':
@@ -118,3 +135,4 @@ if __name__ == '__main__':
     weather.current_weather('Islamabad')
     weather.todays_forcast('Islamabad')
     weather.future_forecast('Islamabad', '2023-08-23')
+    weather.history_forecast('Islamabad', '2023-06-23')
