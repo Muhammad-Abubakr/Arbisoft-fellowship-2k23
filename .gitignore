@@ -2,3 +2,7 @@ w3schools/
 .DS_Store
 token
 tasks/fetch_weather.py
+weather.log
+tasks/weather_api/constants.py
+employee.log
+__pycache__

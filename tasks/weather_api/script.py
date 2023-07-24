@@ -1,6 +1,9 @@
 import logging
 from requests import Response, get
 from pprint import pformat
+import argparse
+import constants
+import datetime
 
 class WeatherApi:
     """WeatherApi class utilizes the WeatherApi to get the data for the
@@ -36,7 +39,11 @@ class WeatherApi:
     __FUTURE_ENDPOINT = '/future.json'
     __FORECAST_ENDPOINT = '/forecast.json'    
     
-    def __init__(self, key) -> None:
+    def __init__(self, key: str) -> None:
+        """Intializes the WeatherApi object with the given API_KEY, also
+        configures the root logger to log the information received from the
+        API after making the requests into the log file.
+        """
         self.__API_KEY = key
 
         # Logger Configuration
@@ -57,7 +64,16 @@ class WeatherApi:
         # self.logger.setLevel(logging.DEBUG)
      
     # Methods
-    def current_weather(self, city):
+    def current_weather(self, city: str) -> None:
+        """logs the current weather information received from the weather api
+        to the log file.
+        
+            Parameters:
+                city (str): Name of the city e.g Islamabad, Lahore
+            
+            Returns:
+                None
+        """
         self.logger.info("Sending request for current weather conditions...")
         
         try:
@@ -67,24 +83,22 @@ class WeatherApi:
             )
             res = get(url)
             parsed = Response.json(res)
-            
-            # repr_str = f""" Current Weather Conditions
-            # Cloudiness: {parsed['cloud']}%
-            # Condition: {parsed['condition']['text']}
-            # Temperature: {parsed['temp_c']} C
-            # Feels Like: {parsed['feelslike_c']} C
-            # Wind: {parsed['wind_kph']} kph
-            # Humidity: {parsed['humidity']}%
-            # Precipitation: {parsed['precip_mm']} mm
-            # """
-            # self.logger.info(repr_str)
-            
             self.logger.info(pformat(parsed))
                         
         except BaseException as e:
             self.logger.error("An Error occured while making the request!")
 
-    def todays_forcast(self, city):
+    def todays_forcast(self, city: str) -> None:
+        """Logs the details about present day forecast to the log file, the
+        log contains information about whole day conditions and hourly for-
+        cast for the queried city.
+        
+            Parameters:
+                city (str): Name of the City e.g Islamabad, Lahore
+            
+            Returns:
+                None
+        """
         self.logger.info("Sending request for Today's forecast...")
 
         try:
@@ -99,7 +113,19 @@ class WeatherApi:
         except BaseException as e:
             self.logger.error("An Error occured while making the request!")
 
-    def future_forecast(self, city, date):
+    def future_forecast(self, city: str, date: str) -> None:
+        """Logs the forecast details about the queried future day in the log
+        file. The log contains information about the given day whole day con-
+        dition and also the hourly forecast for the whole day.
+        
+            Parameters:
+                city (str): Name of the City e.g Islamabad, Lahore
+                date (str): Date in the future for which we need to query the
+                        information about, the format must be (yyyy-mm-dd)
+            
+            Returns:
+                None
+        """
         self.logger.info(f"Sending request for predicted {date} Forecast...")
 
         try:
@@ -114,7 +140,19 @@ class WeatherApi:
         except BaseException as e:
             self.logger.error("An Error occured while making the request!")
 
-    def history_forecast(self, city, date):
+    def history_forecast(self, city: str, date: str) -> None:
+        """Logs the forecast details about the queried past day in the log
+        file. The log contains information about the given day whole day con-
+        dition and also the hourly forecast for the whole day.
+        
+            Parameters:
+                city (str): Name of the City e.g Islamabad, Lahore
+                date (str): Date in the future for which we need to query the
+                        information about, the format must be (yyyy-mm-dd)
+            
+            Returns:
+                None
+        """
         self.logger.info(f"Sending request for past {date} forecast...")
 
         try:
@@ -130,9 +168,81 @@ class WeatherApi:
             self.logger.error("An Error occured while making the request!")
 
 
-if __name__ == '__main__':
-    weather = WeatherApi('52ad3593c0d84e758dc175340232107')
-    weather.current_weather('Islamabad')
-    weather.todays_forcast('Islamabad')
-    weather.future_forecast('Islamabad', '2023-08-23')
-    weather.history_forecast('Islamabad', '2023-06-23')
+def weather_date(date: str) -> str:
+    """Checks the format for the date as required by the WeatherApi
+    
+        Parameters:
+            date (str): Date of the day for which the user wants to query
+
+        Returns:
+            date (str): Date string that respects the WeatherApi Date Format
+
+        Exceptions:
+            TypeError: raised if the date string does not follow WeatherApi
+                    date format
+    """
+    try:
+        year, month, day = date.split('-')
+                
+        if len(year)!=4 or len(month)!=2 or len(day)!=2:
+            raise TypeError
+        
+        # Type checking using Type Casting, so that we only have numbers as
+        # our year, month and day
+        year = int(year)        
+        month = int(month)
+        day = int(day)
+        
+        return date
+        
+    except TypeError:
+        raise argparse.ArgumentTypeError(
+            f"The date must be of format (yyyy-mm-dd) given {date}"
+            )
+
+
+if __name__ == "__main__":
+    weather = WeatherApi(constants.API_KEY)
+    
+    # Arugments Parser
+    parser = argparse.ArgumentParser()
+    
+    # argparse configuration
+    # --city CITY required
+    parser.add_argument(
+        "--city", type=str, required=True, 
+        help="Name of the city you want to query the information about.")
+    # --date DATE optional
+    parser.add_argument(
+        "--date", type=weather_date, required=False, 
+        help="Date for the day you want to query the forecast information.")
+    # --time required choices=(
+    #                   "history", "future", 
+    #                   "todays-forecast", "current-climate")
+    parser.add_argument(
+        "--time", required=True,
+        choices=["history", "future", "todays-forecast", "current-climate"],
+        help=(
+            "Time can be any of the four choices. `history` and `future`"
+            "arguments require date")
+        )
+    
+    # parsing the command line arguments
+    args = parser.parse_args()
+    
+    # Checking if we have a time flag that requires date flag to be set
+    if args.time in ["history", "future"] and args.date is None:
+        raise argparse.ArgumentTypeError(
+            "`history` and `future` time arguments require --date to be set")
+    
+    
+    # Calling the appropriate method based on the flags passed to the script
+    if args.time in ["history", "future"]:
+        if args.time == "history":
+            weather.history_forecast(args.city, args.date)
+        else:
+            weather.future_forecast(args.city, args.date)
+    elif args.time == "current-climate":
+        weather.current_weather(args.city)
+    else:
+        weather.todays_forcast(args.city)
