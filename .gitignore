@@ -1,3 +1,4 @@
+.venv/
 w3schools/
 .DS_Store
 token
@@ -5,4 +6,3 @@ tasks/fetch_weather.py
 tasks/weather_api/constants.py
 __pycache__
 *.log
-.venv
