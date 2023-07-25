@@ -3,3 +3,6 @@ script.py
 .DS_Store
 token
 tasks/fetch_weather.py
+weather_api/
+*.log
+.venv/
