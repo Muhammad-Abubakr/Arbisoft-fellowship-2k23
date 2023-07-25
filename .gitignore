@@ -1,4 +1,6 @@
 .venv/
+.vscode/
+.pytest_cache/
 w3schools/
 .DS_Store
 token
