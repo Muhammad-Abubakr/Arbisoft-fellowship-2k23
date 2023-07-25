@@ -1,8 +1,10 @@
+.venv/
+.vscode/
+.pytest_cache/
 w3schools/
-script.py
 .DS_Store
 token
 tasks/fetch_weather.py
-weather_api/
+tasks/weather_api/constants.py
+__pycache__
 *.log
-.venv/
