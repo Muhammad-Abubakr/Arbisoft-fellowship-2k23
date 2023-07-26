@@ -53,25 +53,7 @@ class ShoppingCart:
         
         for item in self.items:
             if item in price_map:
-                total_price += price_map[item]
+                total_price += price_map.get(item)
 
         return total_price
 
-# Some important notes
-# If want to check if our function raises the exception, if we don't want
-# it to do something on some arguments
-# 
-# ``` python
-#   
-# with pytest.raises(Exception):
-#       Write here the code that should raise 'Exception'
-# ```
-
-# If want to run individual test from a file we can do
-# $ pytest filename::tset_func_name
-
-# If want to print the print statements written in the test to the console
-# $ pytest -s 
-
-# If want to run a single test file
-# $ pytest test_file
