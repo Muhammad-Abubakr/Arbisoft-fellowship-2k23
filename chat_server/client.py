@@ -1,6 +1,6 @@
+import os
 import math
 import asyncio
-import os
 from pathlib import Path
 from logger import makeLogger
 from websockets import exceptions
@@ -36,29 +36,30 @@ async def client_connection(host: str = "127.0.0.1", port: str = 5000):
             file_path = Path(
                     os.path.join(os.getcwd(), "chat_server", "input.txt"))
             if not file_path.is_file():
-                open(file=file_path, mode="w+").write(str())
+                open(file=file_path, mode="w")
                 
             with open(
                 file=file_path,
                 mode="r+") as input_file:
+                
                 for user_input in input_file.readlines():
-                    if user_input == "end":  # Checking if the client wants to close the connection
+                    if user_input == "end": 
                         logger.debug("Closing connection...")
                         await websocket.close(code=1000)
                         logger.debug("Connection closed!")
                         return
-                    elif user_input.startswith("file://"):  # checking if the user wants to send a file
+                    elif user_input.startswith("file://"):  
                         path_str = user_input.split(":")[1].strip("/")
                         path = Path(path_str)
                         await send_file(websocket, path=path, logger=logger)
-                    else:  # if not, send the user input str to the host
+                    else:  
                         logger.info(f"<<<  {user_input}")
                         await websocket.send(user_input.strip())
 
                 input_file.truncate(0)
                 input_file.seek(0)
                 
-            await asyncio.sleep(10)
+            await asyncio.sleep(30)
             
     logger.debug(f"Opening a connection at uri: ws://{host}:{port}")
 
@@ -72,7 +73,6 @@ async def client_connection(host: str = "127.0.0.1", port: str = 5000):
 
             asyncio.create_task(receive_message(websocket))
             asyncio.create_task(async_input(websocket))
-
             await asyncio.sleep(1000)
 
     except (

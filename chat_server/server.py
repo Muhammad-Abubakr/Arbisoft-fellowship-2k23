@@ -28,35 +28,23 @@ async def handler(websocket: WebSocketServerProtocol):
                 await save_file(
                     host=host, port=port, logger=logger,
                     message=message, isClient=False)
-                
             else:
-                # logging the message from client to console
                 logger.info(f"{host}:{port} : {message}\n")
-
-                # taking the response from server
                 server_response = str()
                 while len(server_response) == 0:
                     server_response = input(
                         f"\r\033[K(to {host}:{port})>>> ").strip()
-
-                # Checking if the client wants to close the connection
                 if server_response == "end":
                     logger.debug(f"Closing connection with {host}:{port}")
                     await websocket.close()
                     logger.debug("Connection closed!")
-
-                # checking if the user wants to send a file 
                 elif server_response.startswith("file://"):
                     path_str = server_response.split(":")[1].strip("/")
                     path = Path(path_str)
-
                     await send_file(
                         logger=logger, path=path, websocket=websocket)
-
-                # if not, send the user input str to the host 
                 else:
                     await websocket.send(server_response.strip())
-
     except exceptions.WebSocketException as e:
         logger.fatal(e)
 
