@@ -1,8 +1,13 @@
+extra/
 w3schools/
+__pycache__
+chat_server/client_received/
+chat_server/server_received/
 script.py
 .DS_Store
 token
 tasks/fetch_weather.py
 weather_api/
 *.log
+*.pyc
 .venv/
