@@ -34,19 +34,16 @@ class PucWeb1Spider(Spider):
             response, which is usually downloaded (by the Downloader)
             and fed to the Spiders for processing.
         """
-        with open("scraped.json", "w+") as store:
-            scraped = response.xpath(
-                "//table[@id='GridView1']/tr/td/font/text()").getall()
-            data_list = list()
+        scraped = response.xpath(
+            "//table[@id='GridView1']/tr/td/font/text()").getall()
+        
+        for col in range(0, len(scraped), 3):
+            data = {
+                "id": f"{uuid4()}",
+                "docket_number": scraped[col],
+                "date_filed": scraped[col+1],
+                "description": scraped[col+2],
+                "timestamp": datetime.now().timestamp(),
+            }
+            yield data
             
-            for col in range(0, len(scraped), 3):
-                data = {
-                    "id": f"{uuid4()}",
-                    "docket_number": scraped[col],
-                    "date_filed": scraped[col+1],
-                    "description": scraped[col+2],
-                    "timestamp": datetime.now().timestamp(),
-                }
-                data_list.append(data)
-                
-            store.write(json.dumps(data_list))
