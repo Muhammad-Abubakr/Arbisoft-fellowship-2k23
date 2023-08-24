@@ -10,3 +10,5 @@ pucweb1.html
 scraped.json
 *.log
 .venv/
+.vscode/
+pucweb1.details.html

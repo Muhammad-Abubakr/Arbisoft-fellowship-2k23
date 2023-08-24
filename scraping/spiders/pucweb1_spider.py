@@ -37,9 +37,9 @@ class PucWeb1Spider(Spider):
                 self.start_date = datetime.strptime(start_date, '%m/%d/%Y')
                 self.end_date = datetime.strptime(end_date, '%m/%d/%Y')
             except TypeError:
-                self.log(
-                    "start_date and end_date must be provide alongside each\
-                     other")
+                raise ValueError(
+                "start_date and end_date must be provide alongside each"
+                "other")
 
 
     def start_requests(self):
@@ -78,11 +78,11 @@ class PucWeb1Spider(Spider):
                 if dockets[col] != self.docket_id:
                     continue
             elif hasattr(self, "start_date"):
-                if docket_date < self.start_date:
-                    continue
                 if docket_date > self.end_date:
+                    continue
+                elif docket_date < self.start_date:
                     break
-
+                
             data = {
                 "docket_number": dockets[col],
                 "date_filed": dockets[col+1],
