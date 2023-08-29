@@ -1,5 +1,6 @@
 __pycache__
-drf/
+pollsite/
+migrations/
 extra/
 django_tutorial/
 w3schools/
@@ -10,3 +11,7 @@ tasks/fetch_weather.py
 weather_api/
 *.log
 .venv/
+db.sqlite3
+manage.py
+http_proxies.txt
+scraped.json
