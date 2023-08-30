@@ -1,5 +1,6 @@
 from django.db import models
 from django.utils import timezone
+from django.contrib.auth.models import User
 
 # Create your models here.
 class Question(models.Model):
@@ -15,11 +16,13 @@ class Question(models.Model):
         - question_text: django.db.models.CharField(max_length=200)
         - pub_date: django.db.models.DateTimeField("date published")
     """
+    owner = models.ForeignKey(
+        User, related_name='questions', on_delete=models.CASCADE)
     question_text = models.TextField(max_length=200)
-    pub_date = models.DateTimeField()
+    pub_date = models.DateTimeField(auto_now_add=True)
     
     class Meta:
-        ordering = ['pub_date']
+        ordering = ['-pub_date']
     
 class Choice(models.Model):
     """Choice model for polls app. Has many-one relationship with

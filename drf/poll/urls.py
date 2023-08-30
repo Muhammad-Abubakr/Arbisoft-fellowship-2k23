@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import include, path
 
 from . import views
 
@@ -6,5 +6,6 @@ app_name = 'poll'
 urlpatterns = [
     path('', views.IndexView.as_view(), name='questions'),
     path('<int:question_id>/', views.ChoiceView.as_view(), name='choices'),
-    path('<int:question_id>/vote', views.VoteView.as_view(), name='vote')
+    path('users/', views.UserList.as_view(), name="users"),
+    path('users/<int:user_id>/', views.UserDetail.as_view(), name="user-detail"),
 ]

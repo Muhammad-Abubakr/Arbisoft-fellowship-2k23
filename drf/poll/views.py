@@ -1,115 +1,155 @@
-from django.http import JsonResponse, HttpResponseBadRequest
-from django.utils import timezone
-from rest_framework import views
+from django.http.response import JsonResponse, HttpResponseBadRequest, Http404
+from django.shortcuts import get_object_or_404, get_list_or_404
+from django.contrib.auth.models import User
+
+from rest_framework import generics, permissions
 from rest_framework.request import Request
+from rest_framework.parsers import JSONParser
 
 from .models import Question, Choice
-from .serializers import QuestionSerializer, ChoiceSerializer
+from .permissions import IsOwnerOrReadOnly
+from .serializers import (
+    QuestionSerializer, 
+    ChoiceSerializer,
+    UserSerializer
+)
+
 
 # Create your views here.
-class IndexView(views.APIView):
+class IndexView(generics.GenericAPIView):
+    queryset = Question.objects.all()
+    serializer_class = QuestionSerializer
+    permission_classes = [
+        permissions.IsAuthenticatedOrReadOnly, 
+        IsOwnerOrReadOnly,
+    ]
+
+    
     def get(self, request: Request):
-        serializer = QuestionSerializer(Question.objects.all(), many=True)
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
         return  JsonResponse(serializer.data, safe=False)
 
     def post(self, request: Request):
-        data = request.data
         try:
-            question_text = data['question_text']
-            pub_date = timezone.now()
-            question = Question.objects.create(
-                question_text = question_text,
-                pub_date = pub_date)
-            question.save()
-            serializer = QuestionSerializer(question)
-            return JsonResponse({"created" : serializer.data})
-        except KeyError:
-            error_message = "question_text not found in request."
-            return JsonResponse({"error_message" : error_message})
+            data = JSONParser().parse(request)
+            serializer = self.get_serializer(data=data)
+            if serializer.is_valid():
+                serializer.save(owner=request.user)
+                return JsonResponse(serializer.data, safe=False)
+            return JsonResponse(serializer.errors, status=400)
+        except KeyError as e:
+            return JsonResponse(
+                {"error": f"Missing {e.args} in request."}, status=400)
     
     def patch(self, request: Request):
-        data = request.data
         try:
-            question_text = data['question_text']
-            question_id = int(data['question_id']) 
-            question = Question.objects.get(pk=question_id)
-            question.question_text = question_text
-            question.save()
-            serializer = QuestionSerializer(question)
-            return JsonResponse({"updated" : serializer.data})
-        except (KeyError, TypeError, Question.DoesNotExist):
-            return HttpResponseBadRequest()
+            queryset = self.get_queryset()
+            data = JSONParser().parse(request)
+            question = get_object_or_404(queryset, pk=data["question_id"])
+            serializer = self.get_serializer(question, data=data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return JsonResponse(serializer.data)
+            return JsonResponse(serializer.errors, status=400)
+        except KeyError as e:
+            return JsonResponse(
+                {"error": f"Missing {e.args} in request."}, status=400)
+        except (TypeError, Question.DoesNotExist) as e:
+            return HttpResponseBadRequest(content=e)
     
     def delete(self, request: Request):
-        data = request.data
         try:
+            queryset = self.get_queryset()
+            data = JSONParser().parse(request)
             question_id = int(data['question_id']) 
-            question = Question.objects.get(pk=question_id)
+            question = get_object_or_404(queryset, pk=question_id)
             question.delete()
             serializer = QuestionSerializer(question)
-            return JsonResponse({"deleted" : serializer.data})
-        except (KeyError, TypeError, Question.DoesNotExist):
-            return HttpResponseBadRequest()
+            return JsonResponse(serializer.data, safe=False)
+        except KeyError as e:
+            return JsonResponse(
+                {"error": f"Missing {e.args} in request."}, status=400)
+        except (TypeError, Question.DoesNotExist) as e:
+            return HttpResponseBadRequest(content=e)
     
 
-class ChoiceView(views.APIView):
+class ChoiceView(generics.GenericAPIView):
+    queryset = Choice.objects.all()
+    serializer_class = ChoiceSerializer
+    permission_classes = [
+        permissions.IsAuthenticatedOrReadOnly, 
+        IsOwnerOrReadOnly,
+    ]
+    
     def get(self, request: Request, question_id: int):
-        try:
-            question = Question.objects.get(pk=question_id)
-            choices = question.choice_set.all()
-            serializer = ChoiceSerializer(choices, many=True)
-            return JsonResponse(serializer.data, safe=False)
-        except Question.DoesNotExist:
-            return HttpResponseBadRequest()
+        queryset = self.get_queryset()
+        choices = get_list_or_404(queryset, question=question_id)
+        serializer = self.get_serializer(choices, many=True)
+        return JsonResponse(serializer.data, safe=False)
     
     def post(self, request: Request, question_id: int):
-        data = request.data
         try:
+            data = JSONParser().parse(request)
             question = Question.objects.get(pk=question_id)
-            choice_text = data["choice_text"]
-            choice = Choice.objects.create(
-                question=question,
-                choice_text=choice_text)
-            choice.save()
-            serializer = ChoiceSerializer(choice)
-            return JsonResponse({"created": serializer.data})
-        except (KeyError, Question.DoesNotExist):
-            return HttpResponseBadRequest()
+            serializer = self.get_serializer(data=data)
+            if serializer.is_valid():
+                serializer.save(question=question)
+                return JsonResponse(serializer.data, safe=False)
+            return JsonResponse(serializer.errors, status=400)
+        except KeyError as e:
+            return JsonResponse(
+                {"error": f"Missing {e.args} in request."}, status=400)
+        except (TypeError, Question.DoesNotExist) as e:
+            return HttpResponseBadRequest(content=e)
+
+    def patch(self, request: Request, question_id: int):
+        try:
+            queryset = self.get_queryset()
+            data = JSONParser().parse(request)
+            choice = get_object_or_404(queryset, pk=data["choice_id"])
+            serializer = self.get_serializer(
+                choice, data=data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return JsonResponse(serializer.data, safe=False)
+            return JsonResponse(serializer.errors, status=400)
+        except KeyError as e:
+            return JsonResponse(
+                {"error": f"Missing {e.args} in request."}, status=400)
+        except (TypeError, Question.DoesNotExist) as e:
+            return HttpResponseBadRequest(content=e)
     
     def delete(self, request: Request, question_id: int):
-        data = request.data
         try:
-            choice_id = int(data["choice_id"])
-            choice = Choice.objects.get(pk=choice_id)
+            queryset = self.get_queryset()
+            data = JSONParser().parse(request)
+            choice = get_object_or_404(queryset, **data)
             choice.delete()
-            serializer = ChoiceSerializer(choice)
-            return JsonResponse({"deleted": serializer.data})
-        except (KeyError, TypeError, Question.DoesNotExist):
-            return HttpResponseBadRequest()
+            serializer = self.get_serializer(choice)
+            return JsonResponse(serializer.data, safe=False)
+        except (KeyError, TypeError, Question.DoesNotExist) as e:
+            return HttpResponseBadRequest(content=e)
     
-    def patch(self, request: Request, question_id: int):
-        data = request.data
-        try:
-            choice_id = int(data["choice_id"])
-            choice = Choice.objects.get(pk=choice_id)
-            choice_text = data["choice_text"]
-            choice.choice_text = choice_text
-            choice.save()
-            serializer = ChoiceSerializer(choice)
-            return JsonResponse({"updated": serializer.data})
-        except (KeyError, TypeError, Question.DoesNotExist):
-            return HttpResponseBadRequest()
 
+class UserList(generics.GenericAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get(self, request: Request):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        return JsonResponse(serializer.data, safe=False)
 
-class VoteView(views.APIView):
-    def post(self, request: Request, question_id: int):
-        data = request.data
-        try:
-            choice_id = int(data["choice_id"])
-            choice = Choice.objects.get(pk=choice_id)
-            choice.vote += 1
-            choice.save()
-            serializer = ChoiceSerializer(choice)
-            return JsonResponse({"updated": serializer.data})
-        except (KeyError, TypeError, Question.DoesNotExist):
-            return HttpResponseBadRequest()
+    
+class UserDetail(generics.GenericAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    
+    def get(self, request: Request, user_id: int):
+        queryset = self.get_queryset()
+        user = get_object_or_404(queryset, pk=user_id)
+        serializer = self.get_serializer(user)
+        return JsonResponse(serializer.data, safe=False)
+
