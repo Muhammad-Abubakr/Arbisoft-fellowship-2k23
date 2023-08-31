@@ -6,9 +6,7 @@ from rest_framework import generics
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.request import Request
 from rest_framework.parsers import JSONParser
-from rest_framework.authentication import SessionAuthentication
 
-from .authenticators import BearerAuthentication
 from .models import Question, Choice
 from .permissions import IsOwnerOrReadOnly
 from .serializers import (
@@ -20,9 +18,6 @@ from .serializers import (
 class IndexView(generics.GenericAPIView):
     queryset = Question.objects.all()
     serializer_class = QuestionSerializer
-    authentication_classes = (SessionAuthentication, BearerAuthentication)
-    permission_classes = (IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly)
-
     
     def get(self, request: Request):
         queryset = self.get_queryset()
@@ -76,8 +71,6 @@ class IndexView(generics.GenericAPIView):
 class ChoiceView(generics.GenericAPIView):
     queryset = Choice.objects.all()
     serializer_class = ChoiceSerializer
-    authentication_classes = (SessionAuthentication, BearerAuthentication)
-    permission_classes = (IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly)
     
     def get(self, request: Request, question_id: int):
         queryset = self.get_queryset()
@@ -132,8 +125,6 @@ class ChoiceView(generics.GenericAPIView):
 class UserList(generics.GenericAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    authentication_classes = (SessionAuthentication, BearerAuthentication)
-    permission_classes = (IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly)
     
     def get(self, request: Request):
         queryset = self.get_queryset()
