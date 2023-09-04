@@ -1,5 +1,6 @@
 __pycache__
-pollsite/
+asgi.py
+wsgi.py
 api/
 migrations/
 extra/
