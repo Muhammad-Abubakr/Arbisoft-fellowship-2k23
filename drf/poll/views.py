@@ -1,4 +1,7 @@
 from datetime import datetime, timedelta
+
+import jwt
+
 from django.shortcuts import get_object_or_404, get_list_or_404
 from django.contrib.auth.models import User
 
@@ -6,12 +9,12 @@ from rest_framework import generics
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.parsers import JSONParser
-from rest_framework.exceptions import AuthenticationFailed
-
-import jwt
-from jwt.exceptions import DecodeError
+from rest_framework.authentication import SessionAuthentication
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
 from .models import Question, Choice
+from .authenticators import JWTAuthentication
+from .permissions import IsOwnerOrReadOnly
 from pollsite.settings import SECRET_KEY
 from .serializers import (
     QuestionSerializer, ChoiceSerializer, UserSerializer
@@ -21,6 +24,8 @@ from .serializers import (
 class IndexView(generics.GenericAPIView):
     queryset = Question.objects.all()
     serializer_class = QuestionSerializer
+    authentication_classes = [SessionAuthentication, JWTAuthentication]
+    permission_classes = [IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
     
     def get(self, request: Request):
         queryset = self.get_queryset()
@@ -75,6 +80,8 @@ class IndexView(generics.GenericAPIView):
 class ChoiceView(generics.GenericAPIView):
     queryset = Choice.objects.all()
     serializer_class = ChoiceSerializer
+    authentication_classes = [SessionAuthentication, JWTAuthentication]
+    permission_classes = [IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
     
     def get(self, request: Request, question_id: int):
         queryset = self.get_queryset()
@@ -121,43 +128,12 @@ class ChoiceView(generics.GenericAPIView):
 class UserList(generics.GenericAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+    authentication_classes = [SessionAuthentication, JWTAuthentication]
+    permission_classes = [IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
     
     def get(self, request: Request):
         queryset = self.get_queryset()
         serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
-
-    
-class UserAuth(generics.GenericAPIView):
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
-    
-    def get(self, request: Request):
-        try:
-            auth_header = request.headers['Authorization']
-            auth_header_split = auth_header.split(' ')
-            token_split = auth_header_split[1].split('.')
-            
-            if (not auth_header 
-                or len(auth_header_split) != 2 
-                or len(token_split) < 2):
-                raise AuthenticationFailed('Invalid token.')
-        
-            payload = jwt.decode(
-                auth_header_split[1], algorithms='HS256', key=SECRET_KEY)
-        
-            if datetime.now().timestamp() > payload['exp']:
-                raise AuthenticationFailed('Token expired.')
-
-            queryset = self.get_queryset()
-            user = get_object_or_404(queryset, pk=payload['uid'])
-            serializer = self.get_serializer(user)
-        except KeyError as e:
-            return Response(
-                {"error": f"Missing {e.args} in request."}, status=400)
-        except (DecodeError, User.DoesNotExist) as e:
-            raise AuthenticationFailed(e)
-
         return Response(serializer.data)
 
 
@@ -169,7 +145,7 @@ class LoginView(generics.GenericAPIView):
         try:
             data = JSONParser().parse(request)
             user = get_object_or_404(
-                self.get_queryset(), username=data['email'])
+                self.get_queryset(), email=data['email'])
             header = {
                 'alg': 'HS256',
                 'typ': 'jwt'
