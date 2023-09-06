@@ -29,12 +29,13 @@ ALLOWED_HOSTS = ['*']
 
 # Django Rest Framework Settings
 REST_FRAMEWORK = {
-    # 'DEFAULT_AUTHENTICATION_CLASSES': [
+    
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
     #     'rest_framework.authentication.SessionAuthentication',
     #     'poll.authenticators.BearerAuthentication',
-    #     'rest_framework.authentication.BasicAuthentication',
-        
-    # ],
+    #     'rest_framework.authentication.BasicAuthentication',    
+    ],
     # 'DEFAULT_PERMISSION_CLASSES': [
     #     'rest_framework.permissions.IsAuthenticatedOrReadOnly',
     #     'poll.permissions.IsOwnerOrReadOnly'

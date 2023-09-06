@@ -24,7 +24,7 @@ from .serializers import (
 class IndexView(generics.GenericAPIView):
     queryset = Question.objects.all()
     serializer_class = QuestionSerializer
-    authentication_classes = [SessionAuthentication, JWTAuthentication]
+    # authentication_classes = [SessionAuthentication, JWTAuthentication]
     permission_classes = [IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
     
     def get(self, request: Request):
@@ -80,7 +80,7 @@ class IndexView(generics.GenericAPIView):
 class ChoiceView(generics.GenericAPIView):
     queryset = Choice.objects.all()
     serializer_class = ChoiceSerializer
-    authentication_classes = [SessionAuthentication, JWTAuthentication]
+    # authentication_classes = [SessionAuthentication, JWTAuthentication]
     permission_classes = [IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
     
     def get(self, request: Request, question_id: int):
@@ -128,7 +128,7 @@ class ChoiceView(generics.GenericAPIView):
 class UserList(generics.GenericAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    authentication_classes = [SessionAuthentication, JWTAuthentication]
+    # authentication_classes = [SessionAuthentication, JWTAuthentication]
     permission_classes = [IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
     
     def get(self, request: Request):
