@@ -1,5 +1,10 @@
 __pycache__
+asgi.py
+wsgi.py
+api/
+migrations/
 extra/
+django_tutorial/
 w3schools/
 script.py
 .DS_Store
@@ -8,3 +13,7 @@ tasks/fetch_weather.py
 weather_api/
 *.log
 .venv/
+db.sqlite3
+manage.py
+http_proxies.txt
+scraped.json
