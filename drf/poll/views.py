@@ -142,31 +142,29 @@ class LoginView(generics.GenericAPIView):
     serializer_class = UserSerializer
     
     def post(self, request):
-        try:
-            data = JSONParser().parse(request)
-            user = get_object_or_404(
-                self.get_queryset(), email=data['email'])
-            header = {
-                'alg': 'HS256',
-                'typ': 'jwt'
-            }
-            payload = {
-                'uid': user.id,
-                'exp': datetime.utcnow() + timedelta(minutes=60),
-                'iat': datetime.utcnow()
-            }
-            token = jwt.encode(
-                payload=payload, headers=header, 
-                algorithm='HS256', key=SECRET_KEY)
-            
-            response = Response({'jwt': token})
-            response.set_cookie(
-                key='jwt', value=token, httponly=True, 
-                expires=timedelta(minutes=60), secure=True)
-            return response
-        
-        except KeyError as e:
+        email = request.dat.get("email")
+        if not email:
             return Response(
-                {"error": f"Missing {e.args} in request."}, status=400)
-        except (ValueError, Question.DoesNotExist) as e:
-            return Response({"error": e.args}, status=400)
+                {"error": f"Missing email in request."}, status=400)
+
+        user = get_object_or_404(
+            self.get_queryset(), email=email)
+        header = {
+            'alg': 'HS256',
+            'typ': 'jwt'
+        }
+        payload = {
+            'uid': user.id,
+            'exp': datetime.utcnow() + timedelta(minutes=60),
+            'iat': datetime.utcnow()
+        }
+        token = jwt.encode(
+            payload=payload, headers=header, 
+            algorithm='HS256', key=SECRET_KEY)
+        
+        response = Response({'jwt': token})
+        response.set_cookie(
+            key='jwt', value=token, httponly=True, 
+            expires=timedelta(minutes=60), secure=True)
+        return response
+    
