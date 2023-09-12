@@ -6,5 +6,9 @@ script.py
 token
 tasks/fetch_weather.py
 weather_api/
+pucweb1.html
+scraped.json
 *.log
 .venv/
+.vscode/
+pucweb1.details.html
