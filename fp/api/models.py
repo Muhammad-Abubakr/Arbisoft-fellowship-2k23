@@ -1,4 +1,5 @@
 from django.db import models
+from datetime import datetime
 
 # Create your models here.
 class Docket(models.Model):
@@ -21,7 +22,7 @@ class Docket(models.Model):
         ordering: date_filled [DESC]
     """
     docket_no = models.CharField(primary_key=True, max_length=9)
-    timestamp = models.DateTimeField(auto_now_add=True)
+    timestamp = models.DateTimeField(default=datetime.now().isoformat())
     date_filled = models.CharField(max_length=16)
     description = models.CharField(max_length=512)
     
