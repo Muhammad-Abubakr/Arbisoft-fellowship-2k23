@@ -2,8 +2,6 @@ from datetime import datetime
 from scrapy.http import Response
 from scrapy import FormRequest, Request, Spider
 
-from ..items import DocketItem, DocumentItem
-
 class PucWeb1Spider(Spider):
     """scrapes data from (https://pucweb1.state.nv.us)
     
@@ -55,9 +53,9 @@ class PucWeb1Spider(Spider):
         for url in urls:
             yield Request(
                 url=url, 
-                callback=self.parse)
+                callback=self.parse_docket)
             
-    def parse(self, response: Response):
+    def parse_docket(self, response: Response):
         """parses the response received against the request made by 
         start_requests
 
@@ -84,7 +82,7 @@ class PucWeb1Spider(Spider):
                 elif docket_date < self.start_date:
                     break
             
-            item = DocketItem()    
+            item = dict()   
             item["docket_no"] = dockets[col]
             item["date_filled"] = dockets[col+1]
             item["description"] = dockets[col+2]
@@ -122,19 +120,17 @@ class PucWeb1Spider(Spider):
         Yields:
             _type_: dict[str, any]
         """
-        docket: DocketItem = response.meta.get("docket")
+        docket = response.meta.get("docket")
         dockets_details = response.xpath(
             "//table[@id='GridView2']/tr/td/font/text()").getall()
-        documents: list[DocumentItem] = list()
         
         for col in range(0, len(dockets_details),4):
-            item = DocumentItem()
-            item["docket"] = docket.django_model.docket_no
+            item = dict()
+            item["docket"] = docket.get("docket_id")
             item["date_filed"] = dockets_details[col].strip()
             item["doc_type"] = dockets_details[col+1].strip()
             item["notes"] = dockets_details[col+2].strip()
             item["document_id"] = dockets_details[col+3].strip()
 
-            documents.append(item)
+            yield item
         
-        yield (docket, documents)

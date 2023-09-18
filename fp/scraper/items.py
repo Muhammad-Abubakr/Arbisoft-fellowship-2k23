@@ -5,12 +5,4 @@
 
 from scrapy_djangoitem import DjangoItem
 
-from api.models import Docket, Document
-
-
-class DocketItem(DjangoItem):
-    django_model = Docket
-    
-class DocumentItem(DjangoItem):
-    django_model = Document
-    
+# write your items here

@@ -6,20 +6,22 @@
 
 # useful for handling different item types with a single interface
 import logging
-from itemadapter import ItemAdapter
-from psycopg import IntegrityError, Transaction
-from django.core.exceptions import ValidationError
-import asyncio
+from scrapy.spiders import Spider
+from requests import post
 
 class ScraperPipeline:
     def process_item(self, item, spider):
         return item
 
 class DocketPipeline:
-    def process_item(self, item, spider):
+    def process_item(self, item, spider: Spider):
         try:
-            item.save()
-        except (ValueError, IntegrityError, ValidationError) as e:
+            if spider.name == "pucweb1_dockets":
+                post(url="http://127.0.0.1:8000/api/dockets/", data=item)
+            else:
+                post(url="http://127.0.0.1:8000/api/documents/", data=item)
+        except Exception as e:
             spider.log(str(e), logging.DEBUG)
             return None
+
         return item
