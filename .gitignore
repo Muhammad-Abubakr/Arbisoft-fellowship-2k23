@@ -9,3 +9,11 @@ tasks/fetch_weather.py
 weather_api/
 *.log
 .venv/
+*.pid
+setup.py
+scrapyd_logs.txt
+logs/
+dbs/
+eggs/
+build/
+project.egg-info/

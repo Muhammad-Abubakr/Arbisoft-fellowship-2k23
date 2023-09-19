@@ -5,7 +5,7 @@ from .models import Docket, Document
 class DocketSerializer(serializers.Serializer):
     docket_no = serializers.CharField()
     timestamp = serializers.ReadOnlyField()
-    date_filled = serializers.CharField()
+    date_filled = serializers.DateTimeField()
     description = serializers.CharField()
 
     def create(self, validated_data):
@@ -23,7 +23,7 @@ class DocketSerializer(serializers.Serializer):
 class DocumentSerializer(serializers.Serializer):
     docket = serializers.ReadOnlyField()
     document_id = serializers.CharField()
-    date_filed = serializers.CharField(max_length=16)
+    date_filed = serializers.DateTimeField()
     doc_type = serializers.CharField(max_length=64)
     notes = serializers.CharField(max_length=1024)
 

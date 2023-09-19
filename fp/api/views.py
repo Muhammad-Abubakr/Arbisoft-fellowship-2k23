@@ -1,8 +1,11 @@
+from datetime import datetime
+
 from django.shortcuts import get_object_or_404
 
 from rest_framework.generics import GenericAPIView
 from rest_framework.request import Request
 from rest_framework.response import Response
+from rest_framework.parsers import JSONParser
 
 from .models import Docket, Document
 from .serializers import DocketSerializer, DocumentSerializer
@@ -23,15 +26,17 @@ class DocketView(GenericAPIView):
         return  Response(serializer.data)
     
     
-    # {'docket_no': '23-09001',
-    # 'date_filled': '09/01/2023',
-    # 'description': 'Informational Report of Sierra Pacific Power Company d/b/a NV Energy concerning its natural gas resource planning activities.'}
     def post(self, request: Request):
+        data: dict[str] = JSONParser().parse(request)
+        date_filled: list[str] = data.get("date_filled").split("/")
+        parsed_date = datetime(
+            month=date_filled[0], day=date_filled[1], year=date_filled[2])
+        data.update({"date_filled" : parsed_date})
         serializer = self.get_serializer(data=request.data)
-        if serializer.is_valid(raise_exception=True):
-            serializer.save()
-            return Response({"status": "OK"}, status=200)
-            
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({"status": "OK"}, status=200)
+        
 
         
 class DocumentView(GenericAPIView):
@@ -49,8 +54,13 @@ class DocumentView(GenericAPIView):
         return  Response(serializer.data)
     
     def post(self, request: Request):
-        serializer = self.get_serializer(data=request.data)
-        if serializer.is_valid(raise_exception=True):
-            serializer.save()
-            return Response({"status": "OK"}, status=200)
+        data: dict[str] = JSONParser().parse(request)
+        date_filed: list[str] = data.get("date_filed").split("/")
+        parsed_date = datetime(
+            month=date_filed[0], day=date_filed[1], year=date_filed[2])
+        data.update({"date_filed" : parsed_date})
+        serializer = self.get_serializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({"status": "OK"}, status=200)
             
