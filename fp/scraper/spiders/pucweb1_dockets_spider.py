@@ -38,7 +38,7 @@ class PucWeb1DocketsSpider(Spider):
             "//table[@id='GridView1']/tr/td/font/text()").getall()
         for col in range(0, len(dockets), 3):
             item = dict()
-            item["docket_no"] = dockets[col]
+            item["id"] = dockets[col]
             item["date_filled"] = dockets[col+1]
             item["description"] = dockets[col+2]
 

@@ -83,7 +83,7 @@ class PucWeb1Spider(Spider):
                     break
             
             item = dict()   
-            item["docket_no"] = dockets[col]
+            item["id"] = dockets[col]
             item["date_filled"] = dockets[col+1]
             item["description"] = dockets[col+2]
 
@@ -126,11 +126,11 @@ class PucWeb1Spider(Spider):
         
         for col in range(0, len(dockets_details),4):
             item = dict()
-            item["docket"] = docket.get("docket_id")
+            item["docket"] = docket.get("id")
             item["date_filed"] = dockets_details[col].strip()
             item["doc_type"] = dockets_details[col+1].strip()
             item["notes"] = dockets_details[col+2].strip()
-            item["document_id"] = dockets_details[col+3].strip()
+            item["id"] = dockets_details[col+3].strip()
 
             yield item
         

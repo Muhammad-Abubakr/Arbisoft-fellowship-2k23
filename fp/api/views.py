@@ -17,7 +17,7 @@ class DocketView(GenericAPIView):
 
     def get(self, request: Request):
         queryset = self.get_queryset()
-        docket_no = request.data.get("docket_no")
+        docket_no = request.data.get("id")
         if docket_no != None:
             docket = get_object_or_404(queryset, pk=docket_no)
             serializer = self.get_serializer(docket)
@@ -45,7 +45,7 @@ class DocumentView(GenericAPIView):
     
     def get(self, request):
         queryset = self.get_queryset()
-        document_id = request.data.get("document_id")
+        document_id = request.data.get("id")
         if document_id != None:
             document = get_object_or_404(queryset, pk=document_id)
             serializer = self.get_serializer(document)

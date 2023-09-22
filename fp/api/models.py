@@ -21,7 +21,7 @@ class Docket(models.Model):
     Meta:
         ordering: date_filled [DESC]
     """
-    docket_no = models.CharField(primary_key=True, max_length=9)
+    id = models.CharField(primary_key=True, max_length=9)
     timestamp = models.DateTimeField(default=datetime.now().isoformat())
     date_filled = models.DateTimeField()
     description = models.CharField(max_length=512)
@@ -50,7 +50,7 @@ class Document(models.Model):
         ordering: date_filed [DESC]
     """
     docket = models.ForeignKey(to=Docket, on_delete=models.CASCADE)
-    document_id = models.CharField(primary_key=True)
+    id = models.CharField(primary_key=True)
     date_filed = models.DateTimeField()
     doc_type = models.CharField(max_length=64)
     notes = models.CharField(max_length=1024)
