@@ -3,8 +3,8 @@ from rest_framework import serializers
 from .models import Docket, Document
 
 class DocketSerializer(serializers.Serializer):
-    docket_no = serializers.CharField()
-    timestamp = serializers.ReadOnlyField()
+    id = serializers.CharField()
+    added = serializers.ReadOnlyField()
     date_filled = serializers.DateTimeField()
     description = serializers.CharField()
 
@@ -21,8 +21,12 @@ class DocketSerializer(serializers.Serializer):
     
 
 class DocumentSerializer(serializers.Serializer):
-    docket = serializers.ReadOnlyField()
-    document_id = serializers.CharField()
+    id = serializers.CharField()
+    docket = serializers.PrimaryKeyRelatedField(
+        read_only=False,
+        many=False,
+        queryset=Docket.objects.all(),
+        )
     date_filed = serializers.DateTimeField()
     doc_type = serializers.CharField(max_length=64)
     notes = serializers.CharField(max_length=1024)

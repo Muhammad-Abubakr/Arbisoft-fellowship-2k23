@@ -30,9 +30,12 @@ class DocketView(GenericAPIView):
         data: dict[str] = JSONParser().parse(request)
         date_filled: list[str] = data.get("date_filled").split("/")
         parsed_date = datetime(
-            month=date_filled[0], day=date_filled[1], year=date_filled[2])
+            month=int(date_filled[0]), 
+            day=int(date_filled[0]), 
+            year=int(date_filled[2])
+        )
         data.update({"date_filled" : parsed_date})
-        serializer = self.get_serializer(data=request.data)
+        serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response({"status": "OK"}, status=200)
@@ -55,10 +58,14 @@ class DocumentView(GenericAPIView):
     
     def post(self, request: Request):
         data: dict[str] = JSONParser().parse(request)
-        date_filed: list[str] = data.get("date_filed").split("/")
+        date_filed: list[str] = data.get("date_filed").split("-")
         parsed_date = datetime(
-            month=date_filed[0], day=date_filed[1], year=date_filed[2])
+            month=int(date_filed[1]),
+            day=int(date_filed[2]), 
+            year=int(date_filed[0])
+        )
         data.update({"date_filed" : parsed_date})
+        data["docket"] = get_object_or_404(Docket, pk=data.get("docket"))
         serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
         serializer.save()

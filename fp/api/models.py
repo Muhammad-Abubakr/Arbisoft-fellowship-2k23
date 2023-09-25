@@ -1,5 +1,5 @@
 from django.db import models
-from datetime import datetime
+from django.utils import timezone
 
 # Create your models here.
 class Docket(models.Model):
@@ -13,7 +13,7 @@ class Docket(models.Model):
     
     Attrs:
         - docket_no: BigIntegerField (primary_key)
-        - timestamp: DateTimeField (timestamp when this docket was 
+        - added: DateTimeField (timestamp when this docket was 
                     scraped from the web)
         - date_filled: DateTimeField (date when the docket was filled)
         - description: CharField (description of the docket)
@@ -22,12 +22,15 @@ class Docket(models.Model):
         ordering: date_filled [DESC]
     """
     id = models.CharField(primary_key=True, max_length=9)
-    timestamp = models.DateTimeField(default=datetime.now().isoformat())
+    added = models.DateTimeField(default=timezone.now())
     date_filled = models.DateTimeField()
     description = models.CharField(max_length=512)
     
     class Meta:
         ordering = ['-date_filled']
+
+    def __str__(self):
+        return self.id
         
 class Document(models.Model):
     """Document model for the listings scraped from each docket of 
@@ -49,12 +52,15 @@ class Document(models.Model):
     Meta:
         ordering: date_filed [DESC]
     """
-    docket = models.ForeignKey(to=Docket, on_delete=models.CASCADE)
     id = models.CharField(primary_key=True)
+    docket = models.ForeignKey(to=Docket, related_name="documents" , on_delete=models.CASCADE)
     date_filed = models.DateTimeField()
     doc_type = models.CharField(max_length=64)
     notes = models.CharField(max_length=1024)
     
     class Meta:
         ordering = ['-date_filed']
+
+    def __str__(self):
+        return self.id
 
